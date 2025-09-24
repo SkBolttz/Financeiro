@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import Sistema.Financeiro.Fincaneiro.DTO.LoginDTO;
 import Sistema.Financeiro.Fincaneiro.DTO.RegistroDTO;
 import Sistema.Financeiro.Fincaneiro.Entidade.Usuario;
+import Sistema.Financeiro.Fincaneiro.Seguranca.TokenJWT;
 import Sistema.Financeiro.Fincaneiro.Seguranca.TokenService;
 import Sistema.Financeiro.Fincaneiro.Servicos.LoginServico;
 import jakarta.validation.Valid;
@@ -39,13 +40,13 @@ public class AutenticacaoController {
         Usuario usuario = (Usuario) authentication.getPrincipal();
         String token = tokenService.gerarToken(usuario);
 
-        return ResponseEntity.ok().body("Fodase + " + token);
+        return ResponseEntity.ok(new TokenJWT(token));
     }
 
     @PostMapping("/cadastro")
     public ResponseEntity<String> cadastro(@RequestBody @Valid RegistroDTO registroDTO) {
         if (loginServico.cadastrar(new Usuario(registroDTO.nome(), registroDTO.email(), registroDTO.senha()))) {
-            return ResponseEntity.status(201).body("Fodase 2!");
+            return ResponseEntity.status(201).body("Usuario cadastrado com sucesso!");
         } else {
             return ResponseEntity.status(409).body("Falha ao cadastrar usuario!");
         }
