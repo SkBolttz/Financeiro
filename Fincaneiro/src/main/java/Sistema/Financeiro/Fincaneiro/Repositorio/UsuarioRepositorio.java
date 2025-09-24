@@ -1,7 +1,7 @@
 package Sistema.Financeiro.Fincaneiro.Repositorio;
 
-import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Repository;
 import Sistema.Financeiro.Fincaneiro.Entidade.Usuario;
 
@@ -14,6 +14,7 @@ public interface UsuarioRepositorio extends JpaRepository<Usuario, Long> {
 
     Usuario findByEmailAndSenha(String email, String senha);
 
-    Optional<Usuario> findByEmail(String email);
+    UserDetails findByEmail(String username);
+
 
 }

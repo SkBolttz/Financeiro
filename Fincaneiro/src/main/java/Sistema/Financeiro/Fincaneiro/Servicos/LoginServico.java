@@ -20,7 +20,7 @@ public class LoginServico {
 
     // Funcionando
     public boolean autenticar(String email, String senha) {
-        Usuario usuario = usuarioRepositorio.findByEmail(email).orElse(null);
+        Usuario usuario = (Usuario) usuarioRepositorio.findByEmail(email);
         if (usuario == null)
             return false;
 
