@@ -2,6 +2,8 @@ package Sistema.Financeiro.Fincaneiro.Servicos;
 
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import Sistema.Financeiro.Fincaneiro.DTO.AlterarMovimentacaoDTO;
 import Sistema.Financeiro.Fincaneiro.DTO.MovimentacaoDTO;
@@ -49,11 +51,12 @@ public class MovimentacaoServico {
             throw new TipoIncorretoException("Tipo de incorreto!", "Tipo de movimentação inválido, esperado RECEITA.");
         }
 
-        Categoria categoriaLocalizada = categoriaRepositorio.findByNome(movimentacaoDTO.categoria_nome().getNome());
-        if (categoriaLocalizada == null) {
-            throw new CategoriaNaoLocalizadaException("Categoria nao localizada.",
-                    "Erro ao localizar a categoria, por favor, verique se esta cadastrada");
-        }
+        Categoria categoriaLocalizada = categoriaRepositorio
+                .findById(movimentacaoDTO.categoria_id().getId())
+                .orElseThrow(() -> new CategoriaNaoLocalizadaException(
+                        "Categoria nao localizada.",
+                        "Erro ao localizar a categoria, verifique se está cadastrada: "
+                                + movimentacaoDTO.categoria_id().getId()));
 
         if (categoriaLocalizada.getTipo() != TipoMovimentacao.RECEITA) {
             throw new CategoriaIncorretaException("Categoria incorreta!", "Categoria nao e uma categoria de receita.");
@@ -108,11 +111,11 @@ public class MovimentacaoServico {
             throw new TipoIncorretoException("Tipo de incorreto!", "Tipo de movimentação inválido, esperado DESPESA.");
         }
 
-        Categoria categoriaLocalizada = categoriaRepositorio.findByNome(movimentacaoDTO.categoria_nome().getNome());
-        if (categoriaLocalizada == null) {
-            throw new CategoriaNaoLocalizadaException("Categoria nao localizada.",
-                    "Erro ao localizar a categoria, por favor, verique se esta cadastrada");
-        }
+        Categoria categoriaLocalizada = categoriaRepositorio
+                .findById(movimentacaoDTO.categoria_id().getId())
+                .orElseThrow(() -> new CategoriaNaoLocalizadaException(
+                        "Categoria nao localizada.",
+                        "Erro ao localizar a categoria, por favor, verifique se esta cadastrada"));
 
         if (categoriaLocalizada.getTipo() != TipoMovimentacao.DESPESA) {
             throw new CategoriaIncorretaException("Categoria incorreta!", "Categoria nao e uma categoria de despesa.");
@@ -130,7 +133,7 @@ public class MovimentacaoServico {
                 categoriaLocalizada,
                 true);
 
-                movimentacao.setPago(false);
+        movimentacao.setPago(false);
 
         movimentacaoRepositorio.save(movimentacao);
     }
@@ -255,48 +258,58 @@ public class MovimentacaoServico {
         }
     }
 
-    // Funcionando
-    public List<Movimentacao> listarMovimentacao() {
-        return movimentacaoRepositorio.findAll();
+    public Page<Movimentacao> listarMovimentacao(int page, int size) {
+        return movimentacaoRepositorio.findMovimentacoesMaisProximas(
+                PageRequest.of(page, size));
     }
 
     // Funcionando
-    public List<Movimentacao> listarReceitas() {
-        return movimentacaoRepositorio.findByTipo("RECEITA");
+    public Page<Movimentacao> listarReceitas(int page, int size) {
+        return movimentacaoRepositorio.findByTipo("RECEITA", PageRequest.of(page, size));
     }
 
     // Funcionando
-    public List<Movimentacao> listarDespesas() {
-        return movimentacaoRepositorio.findByTipo("DESPESA");
+    public Page<Movimentacao> listarDespesas(int page, int size) {
+        return movimentacaoRepositorio.findByTipo("DESPESA", PageRequest.of(page, size));
     }
 
     // Funcionando
-    public List<Movimentacao> listarReceitasAtivas() {
-        return movimentacaoRepositorio.findByTipoAndAtiva("RECEITA", true);
+    public Page<Movimentacao> listarReceitasAtivas(int page, int size) {
+        return movimentacaoRepositorio.findByTipoAndAtiva("RECEITA", true, PageRequest.of(page, size));
     }
 
     // Funcionando
-    public List<Movimentacao> listarReceitasInativas() {
-        return movimentacaoRepositorio.findByTipoAndAtiva("RECEITA", false);
+    public Page<Movimentacao> listarReceitasInativas(int page, int size) {
+        return movimentacaoRepositorio.findByTipoAndAtiva("RECEITA", false, PageRequest.of(page, size));
     }
 
     // Funcionando
-    public List<Movimentacao> listarDespesasAtivas() {
-        return movimentacaoRepositorio.findByTipoAndAtiva("DESPESA", true);
+    public Page<Movimentacao> listarDespesasAtivas(int page, int size) {
+        return movimentacaoRepositorio.findByTipoAndAtiva("DESPESA", true, PageRequest.of(page, size));
     }
 
     // Funcionando
-    public List<Movimentacao> listarDespesasInativas() {
-        return movimentacaoRepositorio.findByTipoAndAtiva("DESPESA", false);
+    public Page<Movimentacao> listarDespesasInativas(int page, int size) {
+        return movimentacaoRepositorio.findByTipoAndAtiva("DESPESA", false, PageRequest.of(page, size));
     }
 
     // Funcionando
-    public List<Movimentacao> listarDespesasPagas() {
-        return movimentacaoRepositorio.findByTipoAndPago("DESPESA", true);
+    public Page<Movimentacao> listarDespesasPagas(int page, int size) {
+        return movimentacaoRepositorio.findByTipoAndPago("DESPESA", true, PageRequest.of(page, size));
     }
 
     // Funcionando
-    public List<Movimentacao> listarDespesasAtrasadas() {
-        return movimentacaoRepositorio.findByTipoAndAtrasado("DESPESA", true);
+    public Page<Movimentacao> listarDespesasAtrasadas(int page, int size) {
+        return movimentacaoRepositorio.findByTipoAndAtrasado("DESPESA", true, PageRequest.of(page, size));
+    }
+
+    // Funcionando
+    public Page<Movimentacao> listarMovimentacoesAtivas(int page, int size) {
+        return movimentacaoRepositorio.findByAtivo(true, PageRequest.of(page, size));
+    }
+
+    // Funcionando
+    public Page<Movimentacao> listarMovimentacoesInativas(int page, int size) {
+        return movimentacaoRepositorio.findByAtivo(false, PageRequest.of(page, size));
     }
 }

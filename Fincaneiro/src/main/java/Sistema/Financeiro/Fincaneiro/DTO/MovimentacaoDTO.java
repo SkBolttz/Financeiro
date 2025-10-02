@@ -7,7 +7,6 @@ import Sistema.Financeiro.Fincaneiro.Entidade.Usuario;
 import Sistema.Financeiro.Fincaneiro.Enum.TipoMovimentacao;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 
 public record MovimentacaoDTO(
@@ -18,11 +17,11 @@ public record MovimentacaoDTO(
 
         @NotNull(message = "O tipo é obrigatório") TipoMovimentacao tipo,
 
-        @NotNull(message = "A data é obrigatória") @PastOrPresent(message = "A data não pode ser futura") LocalDate data,
+        @NotNull(message = "A data é obrigatória") LocalDate data,
 
         @NotNull(message = "O usuário é obrigatório") Usuario usuario_id,
 
-        @NotNull(message = "A categoria é obrigatória") Categoria categoria_nome,
+        @NotNull(message = "A categoria é obrigatória") Categoria categoria_id,
 
         Boolean ativa) {
 }

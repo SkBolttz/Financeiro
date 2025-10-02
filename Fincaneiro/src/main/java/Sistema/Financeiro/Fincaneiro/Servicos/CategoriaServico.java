@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import Sistema.Financeiro.Fincaneiro.DTO.CategoriaDTO;
 import Sistema.Financeiro.Fincaneiro.Entidade.Categoria;
+import Sistema.Financeiro.Fincaneiro.Enum.TipoMovimentacao;
 import Sistema.Financeiro.Fincaneiro.Exception.Handler.Categoria.CategoriaCadastradaException;
 import Sistema.Financeiro.Fincaneiro.Exception.Handler.Categoria.CategoriaNaoLocalizadaException;
 import Sistema.Financeiro.Fincaneiro.Exception.Handler.Categoria.ErroGlobalCategoria;
@@ -96,11 +97,10 @@ public class CategoriaServico {
 
     // Funcionando
     public List<Categoria> listarCategoriasReceita() {
-        return categoriaRepositorio.findByTipo("RECEITA");
+        return categoriaRepositorio.findByTipoAndAtiva(TipoMovimentacao.RECEITA, true);
     }
 
-    // Funcionando
     public List<Categoria> listarCategoriasDespesa() {
-        return categoriaRepositorio.findByTipo("DESPESA");
+        return categoriaRepositorio.findByTipoAndAtiva(TipoMovimentacao.DESPESA, true);
     }
 }
