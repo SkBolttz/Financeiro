@@ -21,22 +21,18 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 @EqualsAndHashCode(of = "id")
-
+ 
 @Entity
-@Table(name = "tb_alerta")
-public class Alerta {
+@Table(name = "tb_limite")
+public class Limite {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     @NotNull
     @ManyToOne
-    @JoinColumn(name = "usuario_id", nullable = false)
-    private Usuario usuario_id;
-    @NotNull
-    @ManyToOne
-    @JoinColumn(name = "categoria_id", nullable = false)
-    private Categoria categoria_id;
+    @JoinColumn(nullable = false)
+    private Usuario usuario;
     @NotNull
     private Double limite;
     @NotNull

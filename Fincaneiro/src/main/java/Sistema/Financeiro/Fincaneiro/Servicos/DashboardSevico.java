@@ -99,6 +99,6 @@ public class DashboardSevico {
     }
 
     public List<ExtratoMovimentacaoDTO> extratoMovimentacao(Usuario usuarioLogado) {
-        return movimentacaoRepositorio.findExtratoAtivoByUsuarioId(usuarioLogado.getId());
+        return movimentacaoRepositorio.findExtratoByUsuarioIdAndAtiva(usuarioLogado.getId(), true);
     }
 }

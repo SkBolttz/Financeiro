@@ -2,14 +2,12 @@ package Sistema.Financeiro.Fincaneiro.Repositorio;
 
 import java.time.LocalDate;
 import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import Sistema.Financeiro.Fincaneiro.DTO.ExtratoMovimentacaoDTO;
 import Sistema.Financeiro.Fincaneiro.Entidade.Movimentacao;
 import Sistema.Financeiro.Fincaneiro.Enum.TipoMovimentacao;
@@ -61,15 +59,11 @@ public interface MovimentacaoRepositorio extends JpaRepository<Movimentacao, Lon
                         @Param("ativa") boolean ativa);
 
         // ------------------ DTOs ------------------
-        @Query("SELECT new Sistema.Financeiro.Fincaneiro.DTO.ExtratoMovimentacaoDTO(m.id, m.valor, m.tipo, m.data, m.descricao) "
-                        +
-                        "FROM Movimentacao m WHERE m.usuario.id = :usuarioId AND m.ativa = :ativa")
-        List<ExtratoMovimentacaoDTO> findExtratoByUsuarioIdAndAtiva(@Param("usuarioId") long usuarioId,
-                        @Param("ativa") boolean ativa);
 
         @Query("SELECT new Sistema.Financeiro.Fincaneiro.DTO.ExtratoMovimentacaoDTO(" +
-                        "m.descricao, m.categoria_id.nome, m.valor, m.data) " +
-                        "FROM Movimentacao m WHERE m.usuario.id = :usuarioId AND m.ativa = true")
-        List<ExtratoMovimentacaoDTO> findExtratoAtivoByUsuarioId(@Param("usuarioId") long usuarioId);
-
+                        "m.descricao, m.categoria_id.nome, m.valor, m.data, m.tipo) " +
+                        "FROM Movimentacao m " +
+                        "WHERE m.usuario.id = :usuarioId AND m.ativa = :ativa")
+        List<ExtratoMovimentacaoDTO> findExtratoByUsuarioIdAndAtiva(@Param("usuarioId") long usuarioId,
+                        @Param("ativa") boolean ativa);
 }
