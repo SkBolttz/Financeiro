@@ -2,12 +2,13 @@ package Sistema.Financeiro.Fincaneiro.Controlador;
 
 import java.security.Principal;
 import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import Sistema.Financeiro.Fincaneiro.DTO.DespesaCategoriaDTO;
+import Sistema.Financeiro.Fincaneiro.DTO.ExtratoMovimentacaoDTO;
 import Sistema.Financeiro.Fincaneiro.Entidade.Movimentacao;
 import Sistema.Financeiro.Fincaneiro.Entidade.Usuario;
 import Sistema.Financeiro.Fincaneiro.Servicos.DashboardSevico;
@@ -29,15 +30,6 @@ public class DashboardController {
         return usuarioServico.buscarPorEmail(principal.getName());
     }
 
-    @GetMapping("/resumo")
-    public ResponseEntity<?> resumo(Principal principal) {
-        try {
-            return ResponseEntity.ok(dashboardSevico.resumo(getUsuarioLogado(principal)));
-        } catch (Exception e) {
-            return ResponseEntity.status(400).body(e.getMessage());
-        }
-    }
-
     @GetMapping("/tendencia/gastos/despesas/anual")
     public ResponseEntity<List<Movimentacao>> tendenciaGastosDespesasAnual(Principal principal) {
         try {
@@ -56,4 +48,21 @@ public class DashboardController {
         }
     }
 
+    @GetMapping("/despesas/por/categoria")
+    public ResponseEntity<List<DespesaCategoriaDTO>> despesasPorCategoria(Principal principal) {
+        try {
+            return ResponseEntity.ok(dashboardSevico.despesasPorCategoria(getUsuarioLogado(principal)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @GetMapping("/extrato/movimentacao")
+    public ResponseEntity<List<ExtratoMovimentacaoDTO>> extratoMovimentacao(Principal principal) {
+        try {
+            return ResponseEntity.ok(dashboardSevico.extratoMovimentacao(getUsuarioLogado(principal)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
 }
