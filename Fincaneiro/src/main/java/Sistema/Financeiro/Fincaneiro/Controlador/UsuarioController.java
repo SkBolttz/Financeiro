@@ -29,24 +29,8 @@ public class UsuarioController {
 
     @Operation(summary = "Resgatar usuário por email", description = "Retorna os dados do usuário a partir do email fornecido.")
     @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "Usuário localizado com sucesso",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = Usuario.class),
-                examples = @ExampleObject(value = "{ \"id\": 1, \"nome\": \"Henrique\", \"email\": \"henrique@email.com\" }")
-            )
-        ),
-        @ApiResponse(
-            responseCode = "404",
-            description = "Usuário não localizado",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = String.class),
-                examples = @ExampleObject(value = "\"Usuário não localizado para o email informado.\"")
-            )
-        )
+            @ApiResponse(responseCode = "200", description = "Usuário localizado com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Usuario.class), examples = @ExampleObject(value = "{ \"id\": 1, \"nome\": \"Henrique\", \"email\": \"henrique@email.com\" }"))),
+            @ApiResponse(responseCode = "404", description = "Usuário não localizado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Usuário não localizado para o email informado.\"")))
     })
     @PostMapping("/resgatar/usuario")
     public ResponseEntity<?> resgatarUsuario(@RequestBody EmailDTO emailDTO) {

@@ -22,4 +22,18 @@ public class UsuarioServico {
         }
         return usuario;
     }
+
+    public Long buscarIdPorEmail(String name) {
+        Usuario usuario = (Usuario) usuarioRepositorio.findByEmail(name);
+        return usuario.getId();
+    }
+
+    public Usuario buscarPorEmail(String email) {
+        Usuario usuario = (Usuario) usuarioRepositorio.findByEmail(email);
+        if (usuario == null) {
+            throw new RuntimeException("Usuário não encontrado");
+        }
+        return usuario;
+    }
+
 }

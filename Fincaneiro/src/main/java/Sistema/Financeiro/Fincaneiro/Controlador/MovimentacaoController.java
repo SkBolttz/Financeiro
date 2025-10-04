@@ -1,17 +1,18 @@
 package Sistema.Financeiro.Fincaneiro.Controlador;
 
+import java.security.Principal;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import Sistema.Financeiro.Fincaneiro.DTO.AlterarMovimentacaoDTO;
 import Sistema.Financeiro.Fincaneiro.DTO.MovimentacaoDTO;
 import Sistema.Financeiro.Fincaneiro.DTO.RemoverMovimentacaoDTO;
@@ -21,11 +22,7 @@ import Sistema.Financeiro.Fincaneiro.Exception.Handler.Categoria.CategoriaNaoLoc
 import Sistema.Financeiro.Fincaneiro.Exception.Handler.Movimentacao.TipoIncorretoException;
 import Sistema.Financeiro.Fincaneiro.Exception.Handler.Usuario.UsuarioNaoLocalizadoException;
 import Sistema.Financeiro.Fincaneiro.Servicos.MovimentacaoServico;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
+import Sistema.Financeiro.Fincaneiro.Servicos.UsuarioServico;
 
 @RestController
 @RequestMapping("/movimentacao")
@@ -33,9 +30,11 @@ import jakarta.validation.Valid;
 public class MovimentacaoController {
 
     private final MovimentacaoServico movimentacaoServico;
+    private final UsuarioServico usuarioServico;
 
-    public MovimentacaoController(MovimentacaoServico movimentacaoServico) {
+    public MovimentacaoController(MovimentacaoServico movimentacaoServico, UsuarioServico usuarioServico) {
         this.movimentacaoServico = movimentacaoServico;
+        this.usuarioServico = usuarioServico;
     }
 
     @Operation(summary = "Adicionar receita", description = "Adiciona uma nova receita ao usuário.")
@@ -63,6 +62,24 @@ public class MovimentacaoController {
         }
     }
 
+    @Operation(summary = "Adicionar despesa", description = "Adiciona uma nova despesa ao usuário.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Despesa adicionada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Despesa adicionada com sucesso: Descrição - Valor - Data - Tipo\""))),
+            @ApiResponse(responseCode = "400", description = "Erro ao adicionar despesa", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Erro ao adicionar despesa: Mensagem de erro\"")))
+    })
+    @PostMapping("/adicionar/despesa")
+    public ResponseEntity<String> adicionarDespesa(@RequestBody @Valid MovimentacaoDTO movimentacaoDTO) {
+        try {
+            movimentacaoServico.adicionarDespesa(movimentacaoDTO);
+            return ResponseEntity.status(201)
+                    .body("Despesa adicionada com sucesso:V2 " + movimentacaoDTO.descricao() + " - "
+                            + movimentacaoDTO.valor() + " - " + movimentacaoDTO.data() + " - "
+                            + movimentacaoDTO.tipo());
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body("Erro ao adicionar despesa: " + e.getMessage());
+        }
+    }
+
     @Operation(summary = "Remover receita", description = "Remove uma receita existente.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Receita removida com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Receita removida com sucesso\""))),
@@ -75,6 +92,21 @@ public class MovimentacaoController {
             return ResponseEntity.status(201).body("Receita removida com sucesso");
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Erro ao remover receita: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Remover despesa", description = "Remove uma despesa existente.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Despesa removida com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Despesa removida com sucesso\""))),
+            @ApiResponse(responseCode = "400", description = "Erro ao remover despesa", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Erro ao remover despesa: Mensagem de erro\"")))
+    })
+    @PutMapping("/remover/despesa")
+    public ResponseEntity<String> removerDespesa(@RequestBody @Valid RemoverMovimentacaoDTO movimentacaoDTO) {
+        try {
+            movimentacaoServico.removerDespesa(movimentacaoDTO);
+            return ResponseEntity.status(201).body("Despesa removida com sucesso");
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body("Erro ao remover despesa: " + e.getMessage());
         }
     }
 
@@ -96,39 +128,6 @@ public class MovimentacaoController {
         }
     }
 
-    @Operation(summary = "Adicionar despesa", description = "Adiciona uma nova despesa ao usuário.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Despesa adicionada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Despesa adicionada com sucesso: Descrição - Valor - Data - Tipo\""))),
-            @ApiResponse(responseCode = "400", description = "Erro ao adicionar despesa", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Erro ao adicionar despesa: Mensagem de erro\"")))
-    })
-    @PostMapping("/adicionar/despesa")
-    public ResponseEntity<String> adicionarDespesa(@RequestBody @Valid MovimentacaoDTO movimentacaoDTO) {
-        try {
-            movimentacaoServico.adicionarDespesa(movimentacaoDTO);
-            return ResponseEntity.status(201)
-                    .body("Despesa adicionada com sucesso:V2 " + movimentacaoDTO.descricao() + " - "
-                            + movimentacaoDTO.valor() + " - " + movimentacaoDTO.data() + " - "
-                            + movimentacaoDTO.tipo());
-        } catch (Exception e) {
-            return ResponseEntity.status(400).body("Erro ao adicionar despesa: " + e.getMessage());
-        }
-    }
-
-    @Operation(summary = "Remover despesa", description = "Remove uma despesa existente.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Despesa removida com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Despesa removida com sucesso\""))),
-            @ApiResponse(responseCode = "400", description = "Erro ao remover despesa", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Erro ao remover despesa: Mensagem de erro\"")))
-    })
-    @PutMapping("/remover/despesa")
-    public ResponseEntity<String> removerDespesa(@RequestBody @Valid RemoverMovimentacaoDTO movimentacaoDTO) {
-        try {
-            movimentacaoServico.removerDespesa(movimentacaoDTO);
-            return ResponseEntity.status(201).body("Despesa removida com sucesso");
-        } catch (Exception e) {
-            return ResponseEntity.status(400).body("Erro ao remover despesa: " + e.getMessage());
-        }
-    }
-
     @Operation(summary = "Editar despesa", description = "Edita uma despesa existente.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Despesa editada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Despesa editada com sucesso: Descrição - Valor - Data - Tipo\""))),
@@ -147,90 +146,99 @@ public class MovimentacaoController {
         }
     }
 
-    @Operation(summary = "Listar todas as movimentações", description = "Retorna todas as movimentações cadastradas.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista de movimentações retornada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Movimentacao.class))),
-            @ApiResponse(responseCode = "400", description = "Erro ao listar movimentações", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Erro ao listar movimentações: Mensagem de erro\"")))
-    })
+    // Recupera o ID do usuário logado
+    private Long getUsuarioId(Principal principal) {
+        return usuarioServico.buscarIdPorEmail(principal.getName());
+    }
+
+    // ====================== LISTAGEM ======================
+
     @GetMapping("/listar/todas")
     public ResponseEntity<Page<Movimentacao>> listarMovimentacao(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            Principal principal) {
         try {
-            Page<Movimentacao> movimentacoes = movimentacaoServico.listarMovimentacao(page, size);
-            return ResponseEntity.ok(movimentacoes);
+            return ResponseEntity.ok(
+                    movimentacaoServico.listarMovimentacao(getUsuarioId(principal), page, size));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
 
     @GetMapping("/listar/receita")
-    public ResponseEntity<Page<Movimentacao>> listarReceita(
+    public ResponseEntity<Page<Movimentacao>> listarReceitas(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            Principal principal) {
         try {
-            Page<Movimentacao> movimentacoes = movimentacaoServico.listarReceitas(page, size);
-            return ResponseEntity.ok(movimentacoes);
+            return ResponseEntity.ok(
+                    movimentacaoServico.listarReceitas(getUsuarioId(principal), page, size));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
 
     @GetMapping("/listar/despesa")
-    public ResponseEntity<Page<Movimentacao>> listarDespesa(
+    public ResponseEntity<Page<Movimentacao>> listarDespesas(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            Principal principal) {
         try {
-            Page<Movimentacao> movimentacoes = movimentacaoServico.listarDespesas(page, size);
-            return ResponseEntity.ok(movimentacoes);
+            return ResponseEntity.ok(
+                    movimentacaoServico.listarDespesas(getUsuarioId(principal), page, size));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
 
-    @GetMapping("/listar/receitas/ativas")
+    @GetMapping("/listar/receita/ativa")
     public ResponseEntity<Page<Movimentacao>> listarReceitasAtivas(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            Principal principal) {
         try {
-            Page<Movimentacao> movimentacoes = movimentacaoServico.listarReceitasAtivas(page, size);
-            return ResponseEntity.ok(movimentacoes);
+            return ResponseEntity.ok(
+                    movimentacaoServico.listarReceitasAtivas(getUsuarioId(principal), page, size));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
 
-    @GetMapping("/listar/receitas/inativas")
-    public ResponseEntity<Page<Movimentacao>> listarReceitasInativas(
+    @GetMapping("/listar/receita/inativa")
+    public ResponseEntity<Page<Movimentacao>> listarReceitaInativas(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            Principal principal) {
         try {
-            Page<Movimentacao> movimentacoes = movimentacaoServico.listarReceitasInativas(page, size);
-            return ResponseEntity.ok(movimentacoes);
+            return ResponseEntity.ok(
+                    movimentacaoServico.listarReceitasInativas(getUsuarioId(principal), page, size));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
 
-    @GetMapping("/listar/despesas/ativas")
+    @GetMapping("/listar/despesa/ativa")
     public ResponseEntity<Page<Movimentacao>> listarDespesasAtivas(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            Principal principal) {
         try {
-            Page<Movimentacao> movimentacoes = movimentacaoServico.listarDespesasAtivas(page, size);
-            return ResponseEntity.ok(movimentacoes);
+            return ResponseEntity.ok(
+                    movimentacaoServico.listarDespesasAtivas(getUsuarioId(principal), page, size));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
 
-    @GetMapping("/listar/despesas/inativas")
+    @GetMapping("/listar/despesa/inativa")
     public ResponseEntity<Page<Movimentacao>> listarDespesasInativas(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            Principal principal) {
         try {
-            Page<Movimentacao> movimentacoes = movimentacaoServico.listarDespesasInativas(page, size);
-            return ResponseEntity.ok(movimentacoes);
+            return ResponseEntity.ok(
+                    movimentacaoServico.listarDespesasInativas(getUsuarioId(principal), page, size));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }
@@ -239,10 +247,11 @@ public class MovimentacaoController {
     @GetMapping("/listar/despesas/pagas")
     public ResponseEntity<Page<Movimentacao>> listarDespesasPagas(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            Principal principal) {
         try {
-            Page<Movimentacao> movimentacoes = movimentacaoServico.listarDespesasPagas(page, size);
-            return ResponseEntity.ok(movimentacoes);
+            return ResponseEntity.ok(
+                    movimentacaoServico.listarDespesasPagas(getUsuarioId(principal), page, size));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }
@@ -251,34 +260,37 @@ public class MovimentacaoController {
     @GetMapping("/listar/despesas/atrasadas")
     public ResponseEntity<Page<Movimentacao>> listarDespesasAtrasadas(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            Principal principal) {
         try {
-            Page<Movimentacao> movimentacoes = movimentacaoServico.listarDespesasAtrasadas(page, size);
-            return ResponseEntity.ok(movimentacoes);
+            return ResponseEntity.ok(
+                    movimentacaoServico.listarDespesasAtrasadas(getUsuarioId(principal), page, size));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
 
-    @GetMapping("/listar/movimentacoes/ativas")
+    @GetMapping("/listar/todas/movimentacoes/ativas")
     public ResponseEntity<Page<Movimentacao>> listarMovimentacoesAtivas(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            Principal principal) {
         try {
-            Page<Movimentacao> movimentacoes = movimentacaoServico.listarMovimentacoesAtivas(page, size);
-            return ResponseEntity.ok(movimentacoes);
+            return ResponseEntity.ok(
+                    movimentacaoServico.listarMovimentacoesAtivas(getUsuarioId(principal), page, size));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
 
-    @GetMapping("/listar/movimentacoes/inativas")
+    @GetMapping("/listar/todas/movimentacoes/inativas")
     public ResponseEntity<Page<Movimentacao>> listarMovimentacoesInativas(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            Principal principal) {
         try {
-            Page<Movimentacao> movimentacoes = movimentacaoServico.listarMovimentacoesInativas(page, size);
-            return ResponseEntity.ok(movimentacoes);
+            return ResponseEntity.ok(
+                    movimentacaoServico.listarMovimentacoesInativas(getUsuarioId(principal), page, size));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }

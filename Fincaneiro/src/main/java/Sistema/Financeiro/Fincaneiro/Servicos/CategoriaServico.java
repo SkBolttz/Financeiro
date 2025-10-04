@@ -4,8 +4,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import Sistema.Financeiro.Fincaneiro.DTO.CategoriaDTO;
 import Sistema.Financeiro.Fincaneiro.Entidade.Categoria;
+import Sistema.Financeiro.Fincaneiro.Entidade.Usuario;
 import Sistema.Financeiro.Fincaneiro.Enum.TipoMovimentacao;
-import Sistema.Financeiro.Fincaneiro.Exception.Handler.Categoria.CategoriaCadastradaException;
 import Sistema.Financeiro.Fincaneiro.Exception.Handler.Categoria.CategoriaNaoLocalizadaException;
 import Sistema.Financeiro.Fincaneiro.Exception.Handler.Categoria.ErroGlobalCategoria;
 import Sistema.Financeiro.Fincaneiro.Repositorio.CategoriaRepositorio;
@@ -19,88 +19,82 @@ public class CategoriaServico {
         this.categoriaRepositorio = categoriaRepositorio;
     }
 
-    // Funcionando
+    // Cadastrar
     public void cadastrarCategoria(Categoria categoria) {
-
         try {
-            Categoria categoriaLocalizada = categoriaRepositorio.findByNome(categoria.getNome());
-            if (categoriaLocalizada != null) {
-                throw new CategoriaCadastradaException("Categoria ja cadastrada.",
-                        "Erro ao cadastrar a categoria, verifique se a categoria ja foi cadastrada.");
-            }
             categoria.setAtiva(true);
             categoriaRepositorio.save(categoria);
         } catch (Exception e) {
             throw new ErroGlobalCategoria("Erro ao cadastrar categoria: ",
-                    "Erro ao cadastrar a categoria, por valide, valide o erro: " + e.getMessage());
+                    "Erro ao cadastrar a categoria, por favor, valide o erro: " + e.getMessage());
         }
     }
 
-    // Funcionando
+    // Remover (desativar)
     public void removerCategoria(CategoriaDTO categoria) {
-
         try {
-            Categoria categoriaLocalizada = categoriaRepositorio.findByNome(categoria.nome());
+            Categoria categoriaLocalizada = categoriaRepositorio.findByNomeAndUsuario(categoria.getNome(),
+                    categoria.getUsuario());
 
             if (categoriaLocalizada == null) {
-                throw new CategoriaNaoLocalizadaException("Categoria nao localizada.",
-                        "Erro ao localizar a categoria, por favor, verique se esta cadastrada");
+                throw new CategoriaNaoLocalizadaException("Categoria não localizada.",
+                        "Erro ao localizar a categoria, por favor, verifique se está cadastrada");
             }
 
             categoriaLocalizada.setAtiva(false);
             categoriaRepositorio.save(categoriaLocalizada);
 
         } catch (Exception e) {
-            throw new ErroGlobalCategoria("Erro ao cadastrar categoria: ",
-                    "Erro ao cadastrar a categoria, por valide, valide o erro: " + e.getMessage());
+            throw new ErroGlobalCategoria("Erro ao remover categoria: ",
+                    "Erro ao remover a categoria, por favor, valide o erro: " + e.getMessage());
         }
     }
 
-    // Funcionando
+    // Editar
     public void editarCategoria(CategoriaDTO categoria) {
-
         try {
-            Categoria categoriaLocalizada = categoriaRepositorio.findById(categoria.id())
-                    .orElseThrow(() -> new CategoriaNaoLocalizadaException("Categoria nao localizada.",
-                            "Erro ao localizar a categoria, por favor, verique se esta cadastrada"));
+            Categoria categoriaLocalizada = categoriaRepositorio.findById(categoria.getId())
+                    .orElseThrow(() -> new CategoriaNaoLocalizadaException("Categoria não localizada.",
+                            "Erro ao localizar a categoria, por favor, verifique se está cadastrada"));
 
-            if (categoria.nome() != null) {
-                categoriaLocalizada.setNome(categoria.nome());
+            if (categoria.getNome() != null) {
+                categoriaLocalizada.setNome(categoria.getNome());
             }
 
-            if (categoria.tipo() != null) {
-                categoriaLocalizada.setTipo(categoria.tipo());
+            if (categoria.getTipo() != null) {
+                categoriaLocalizada.setTipo(categoria.getTipo());
             }
 
             categoriaRepositorio.save(categoriaLocalizada);
 
         } catch (Exception e) {
-            throw new ErroGlobalCategoria("Erro ao cadastrar categoria: ",
-                    "Erro ao cadastrar a categoria, por valide, valide o erro: " + e.getMessage());
+            throw new ErroGlobalCategoria("Erro ao editar categoria: ",
+                    "Erro ao editar a categoria, por favor, valide o erro: " + e.getMessage());
         }
     }
 
-    // Funcionando
-    public List<Categoria> listarCategorias() {
-        return categoriaRepositorio.findAll();
+    // Listar todas de um usuário
+    public List<Categoria> listarCategorias(Usuario usuario) {
+        return categoriaRepositorio.findByUsuario(usuario);
     }
 
-    // Funcionando
-    public List<Categoria> listarCategoriasAtivas() {
-        return categoriaRepositorio.findByAtiva(true);
+    // Listar ativas de um usuário
+    public List<Categoria> listarCategoriasAtivas(Usuario usuario) {
+        return categoriaRepositorio.findByUsuarioAndAtiva(usuario, true);
     }
 
-    // Funcionando
-    public List<Categoria> listarCategoriasInativas() {
-        return categoriaRepositorio.findByAtiva(false);
+    // Listar inativas de um usuário
+    public List<Categoria> listarCategoriasInativas(Usuario usuario) {
+        return categoriaRepositorio.findByUsuarioAndAtiva(usuario, false);
     }
 
-    // Funcionando
-    public List<Categoria> listarCategoriasReceita() {
-        return categoriaRepositorio.findByTipoAndAtiva(TipoMovimentacao.RECEITA, true);
+    // Listar receitas de um usuário
+    public List<Categoria> listarCategoriasReceita(Usuario usuario) {
+        return categoriaRepositorio.findByUsuarioAndTipoAndAtiva(usuario, TipoMovimentacao.RECEITA, true);
     }
 
-    public List<Categoria> listarCategoriasDespesa() {
-        return categoriaRepositorio.findByTipoAndAtiva(TipoMovimentacao.DESPESA, true);
+    // Listar despesas de um usuário
+    public List<Categoria> listarCategoriasDespesa(Usuario usuario) {
+        return categoriaRepositorio.findByUsuarioAndTipoAndAtiva(usuario, TipoMovimentacao.DESPESA, true);
     }
 }

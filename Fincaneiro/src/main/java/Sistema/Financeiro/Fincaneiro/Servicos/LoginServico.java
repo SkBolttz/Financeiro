@@ -58,7 +58,7 @@ public class LoginServico {
         usuario.setNome(cadastroDTO.nome());
         usuario.setSenha(passwordEncoder.encode(cadastroDTO.senha()));
         usuario.setSaldo(0.0);
-        usuario.setDataCadatro(LocalDate.now());
+        usuario.setDataCadastro(LocalDate.now());
 
         usuarioRepositorio.save(usuario);
         return true;

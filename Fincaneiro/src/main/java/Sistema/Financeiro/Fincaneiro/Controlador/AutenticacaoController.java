@@ -3,10 +3,10 @@ package Sistema.Financeiro.Fincaneiro.Controlador;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import Sistema.Financeiro.Fincaneiro.DTO.CadastroDTO;
 import Sistema.Financeiro.Fincaneiro.DTO.LoginDTO;
 import Sistema.Financeiro.Fincaneiro.Exception.Handler.Autenticacao.CredenciaisInvalidasException;
@@ -28,7 +28,7 @@ import jakarta.validation.Valid;
 // Refatorado 
 // Não precisa mais atualizar
 
-@Controller
+@RestController
 @RequestMapping("/autenticacao")
 @Tag(name = "Autenticação", description = "Endpoints para autenticação de usuários")
 public class AutenticacaoController {

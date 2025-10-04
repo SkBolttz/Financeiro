@@ -36,9 +36,8 @@ public class Movimentacao {
     private Long id;
     @NotNull
     @ManyToOne
-    @JoinColumn(name = "usuario_id", referencedColumnName = "id", nullable = false)
-    private Usuario usuario_id;
-    @NotNull
+    @JoinColumn(nullable = false)
+    private Usuario usuario;
     @ManyToOne
     @JoinColumn(name = "categoria_id", referencedColumnName = "id", nullable = false)
     private Categoria categoria_id;
@@ -62,7 +61,7 @@ public class Movimentacao {
         this.valor = valor;
         this.data = data;
         this.tipo = tipo;
-        this.usuario_id = usuario;
+        this.usuario = usuario;
         this.categoria_id = categoria;
         this.ativa = ativo;
     }

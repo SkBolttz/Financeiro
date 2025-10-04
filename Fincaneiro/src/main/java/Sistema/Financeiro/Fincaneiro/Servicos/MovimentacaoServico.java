@@ -1,7 +1,6 @@
 package Sistema.Financeiro.Fincaneiro.Servicos;
 
 import java.time.LocalDate;
-import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -258,58 +257,55 @@ public class MovimentacaoServico {
         }
     }
 
-    public Page<Movimentacao> listarMovimentacao(int page, int size) {
-        return movimentacaoRepositorio.findMovimentacoesMaisProximas(
+    public Page<Movimentacao> listarMovimentacao(Long usuarioId, int page, int size) {
+        return movimentacaoRepositorio.findMovimentacoesMaisProximas(usuarioId, PageRequest.of(page, size));
+    }
+
+    public Page<Movimentacao> listarReceitas(Long usuarioId, int page, int size) {
+        return movimentacaoRepositorio.findByUsuarioIdAndTipo(usuarioId, TipoMovimentacao.RECEITA,
                 PageRequest.of(page, size));
     }
 
-    // Funcionando
-    public Page<Movimentacao> listarReceitas(int page, int size) {
-        return movimentacaoRepositorio.findByTipo("RECEITA", PageRequest.of(page, size));
+    public Page<Movimentacao> listarDespesas(Long usuarioId, int page, int size) {
+        return movimentacaoRepositorio.findByUsuarioIdAndTipo(usuarioId, TipoMovimentacao.DESPESA,
+                PageRequest.of(page, size));
     }
 
-    // Funcionando
-    public Page<Movimentacao> listarDespesas(int page, int size) {
-        return movimentacaoRepositorio.findByTipo("DESPESA", PageRequest.of(page, size));
+    public Page<Movimentacao> listarReceitasAtivas(Long usuarioId, int page, int size) {
+        return movimentacaoRepositorio.findByUsuarioIdAndTipoAndAtiva(usuarioId, TipoMovimentacao.RECEITA, true,
+                PageRequest.of(page, size));
     }
 
-    // Funcionando
-    public Page<Movimentacao> listarReceitasAtivas(int page, int size) {
-        return movimentacaoRepositorio.findByTipoAndAtiva("RECEITA", true, PageRequest.of(page, size));
+    public Page<Movimentacao> listarReceitasInativas(Long usuarioId, int page, int size) {
+        return movimentacaoRepositorio.findByUsuarioIdAndTipoAndAtiva(usuarioId, TipoMovimentacao.RECEITA, false,
+                PageRequest.of(page, size));
     }
 
-    // Funcionando
-    public Page<Movimentacao> listarReceitasInativas(int page, int size) {
-        return movimentacaoRepositorio.findByTipoAndAtiva("RECEITA", false, PageRequest.of(page, size));
+    public Page<Movimentacao> listarDespesasAtivas(Long usuarioId, int page, int size) {
+        return movimentacaoRepositorio.findByUsuarioIdAndTipoAndAtiva(usuarioId, TipoMovimentacao.DESPESA, true,
+                PageRequest.of(page, size));
     }
 
-    // Funcionando
-    public Page<Movimentacao> listarDespesasAtivas(int page, int size) {
-        return movimentacaoRepositorio.findByTipoAndAtiva("DESPESA", true, PageRequest.of(page, size));
+    public Page<Movimentacao> listarDespesasInativas(Long usuarioId, int page, int size) {
+        return movimentacaoRepositorio.findByUsuarioIdAndTipoAndAtiva(usuarioId, TipoMovimentacao.DESPESA, false,
+                PageRequest.of(page, size));
     }
 
-    // Funcionando
-    public Page<Movimentacao> listarDespesasInativas(int page, int size) {
-        return movimentacaoRepositorio.findByTipoAndAtiva("DESPESA", false, PageRequest.of(page, size));
+    public Page<Movimentacao> listarDespesasPagas(Long usuarioId, int page, int size) {
+        return movimentacaoRepositorio.findByUsuarioIdAndTipoAndPago(usuarioId, TipoMovimentacao.DESPESA, true,
+                PageRequest.of(page, size));
     }
 
-    // Funcionando
-    public Page<Movimentacao> listarDespesasPagas(int page, int size) {
-        return movimentacaoRepositorio.findByTipoAndPago("DESPESA", true, PageRequest.of(page, size));
+    public Page<Movimentacao> listarDespesasAtrasadas(Long usuarioId, int page, int size) {
+        return movimentacaoRepositorio.findByUsuarioIdAndTipoAndAtrasado(usuarioId, TipoMovimentacao.DESPESA, true,
+                PageRequest.of(page, size));
     }
 
-    // Funcionando
-    public Page<Movimentacao> listarDespesasAtrasadas(int page, int size) {
-        return movimentacaoRepositorio.findByTipoAndAtrasado("DESPESA", true, PageRequest.of(page, size));
+    public Page<Movimentacao> listarMovimentacoesAtivas(Long usuarioId, int page, int size) {
+        return movimentacaoRepositorio.findByUsuarioIdAndAtiva(usuarioId, true, PageRequest.of(page, size));
     }
 
-    // Funcionando
-    public Page<Movimentacao> listarMovimentacoesAtivas(int page, int size) {
-        return movimentacaoRepositorio.findByAtivo(true, PageRequest.of(page, size));
-    }
-
-    // Funcionando
-    public Page<Movimentacao> listarMovimentacoesInativas(int page, int size) {
-        return movimentacaoRepositorio.findByAtivo(false, PageRequest.of(page, size));
+    public Page<Movimentacao> listarMovimentacoesInativas(Long usuarioId, int page, int size) {
+        return movimentacaoRepositorio.findByUsuarioIdAndAtiva(usuarioId, false, PageRequest.of(page, size));
     }
 }

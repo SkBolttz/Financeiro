@@ -39,7 +39,7 @@ public class Usuario implements UserDetails {
     private String senha;
 
     @NotNull
-    private LocalDate dataCadatro;
+    private LocalDate dataCadastro;
 
     private Double saldo;
 
