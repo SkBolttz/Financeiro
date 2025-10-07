@@ -66,4 +66,8 @@ public interface MovimentacaoRepositorio extends JpaRepository<Movimentacao, Lon
                         "WHERE m.usuario.id = :usuarioId AND m.ativa = :ativa")
         List<ExtratoMovimentacaoDTO> findExtratoByUsuarioIdAndAtiva(@Param("usuarioId") long usuarioId,
                         @Param("ativa") boolean ativa);
+
+        List<Movimentacao> findByUsuarioIdAndAtivaAndTipoAndPago(long id, boolean b, TipoMovimentacao despesa,
+                boolean c);
+
 }

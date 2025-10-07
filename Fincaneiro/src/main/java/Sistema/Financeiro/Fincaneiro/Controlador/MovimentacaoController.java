@@ -1,7 +1,6 @@
 package Sistema.Financeiro.Fincaneiro.Controlador;
 
 import java.security.Principal;
-
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -291,6 +290,16 @@ public class MovimentacaoController {
         try {
             return ResponseEntity.ok(
                     movimentacaoServico.listarMovimentacoesInativas(getUsuarioId(principal), page, size));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @PutMapping("/alterar/movimentacao/paga")
+    public ResponseEntity<Movimentacao> alterarMovimentacaoPaga(
+            @RequestBody @Valid AlterarMovimentacaoDTO movimentacaoDTO) {
+        try {
+            return ResponseEntity.status(200).body(movimentacaoServico.alterarMovimentacaoPaga(movimentacaoDTO));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }

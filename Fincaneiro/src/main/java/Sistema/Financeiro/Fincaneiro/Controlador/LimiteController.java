@@ -50,4 +50,14 @@ public class LimiteController {
             return ResponseEntity.badRequest().body(null);
         }
     }
+
+    @GetMapping("/verificar/limite")
+    public ResponseEntity<Limite> verificarLimite(Principal principal) {
+        try {
+            Limite limiteAtual = limiteServico.verificarLimite(getUsuarioLogado(principal));
+            return ResponseEntity.ok(limiteAtual);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
 }

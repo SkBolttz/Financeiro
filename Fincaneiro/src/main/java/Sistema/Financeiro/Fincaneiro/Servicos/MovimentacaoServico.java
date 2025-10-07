@@ -1,6 +1,9 @@
 package Sistema.Financeiro.Fincaneiro.Servicos;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -307,5 +310,51 @@ public class MovimentacaoServico {
 
     public Page<Movimentacao> listarMovimentacoesInativas(Long usuarioId, int page, int size) {
         return movimentacaoRepositorio.findByUsuarioIdAndAtiva(usuarioId, false, PageRequest.of(page, size));
+    }
+
+    public List<Movimentacao> verificarPertoVencimento(long id) {
+
+        List<Movimentacao> movimentacaos = movimentacaoRepositorio.findByUsuarioIdAndAtivaAndTipoAndPago(id, true,
+                TipoMovimentacao.DESPESA, false);
+
+        LocalDate amanha = LocalDate.now().plusDays(1);
+
+        return movimentacaos.stream()
+                .filter(m -> m.getData().isEqual(amanha))
+                .collect(Collectors.toList());
+    }
+
+    public List<Movimentacao> alterarDespesaVencida(long id) {
+
+        List<Movimentacao> movimentacaos = movimentacaoRepositorio.findByUsuarioIdAndAtivaAndTipoAndPago(id, true,
+                TipoMovimentacao.DESPESA, false);
+
+        List<Movimentacao> vencidas = movimentacaos.stream()
+                .filter(m -> m.getData().isBefore(LocalDate.now()))
+                .collect(Collectors.toList());
+
+        vencidas.forEach(m -> {
+            System.out.println("Alerta para " + m.getUsuario().getNome() + ": despesa " + m.getDescricao()
+                    + " Vencida (" + m.getData() + ")");
+            m.setAtrasado(true);
+            movimentacaoRepositorio.save(m);
+        });
+
+        return vencidas;
+    }
+
+    public Movimentacao alterarMovimentacaoPaga(AlterarMovimentacaoDTO movimentacaoDTO) {
+
+        Movimentacao movLocalizada = movimentacaoRepositorio.findById(movimentacaoDTO.id())
+                .orElseThrow(() -> new MovimentacaoNaoLocalizadaException("Movimentação nao localizada",
+                        "Movimentação nao localizada, favor criar uma."));
+
+        if (movLocalizada.getPago() == false) {
+            movLocalizada.setPago(true);
+        } else {
+            movLocalizada.setPago(false);
+        }
+
+        return movimentacaoRepositorio.save(movLocalizada);
     }
 }
