@@ -1,0 +1,44 @@
+package Sistema.Financeiro.Fincaneiro.DTO;
+
+import Sistema.Financeiro.Fincaneiro.Entidade.Endereco;
+import Sistema.Financeiro.Fincaneiro.Entidade.Usuario;
+import Sistema.Financeiro.Fincaneiro.Enum.TipoClienteFornecedor;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+public class ClienteDTO {
+
+    @NotBlank
+    private String nome;
+
+    private String cpf;
+
+    private String cnpj;
+
+    @NotBlank
+    private String telefone;
+
+    @NotBlank
+    @Email
+    private String email;
+
+    @NotNull
+    private Endereco endereco;
+
+    @NotNull
+    private TipoClienteFornecedor tipo;
+
+    @NotNull
+    private Usuario usuario;
+}
