@@ -1,6 +1,7 @@
 package Sistema.Financeiro.Fincaneiro.Repositorio;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +10,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import Sistema.Financeiro.Fincaneiro.DTO.ExtratoMovimentacaoDTO;
+import Sistema.Financeiro.Fincaneiro.DTO.MovimentacaoCategoriaDTO;
+import Sistema.Financeiro.Fincaneiro.DTO.MovimentacaoMensalDTO;
+import Sistema.Financeiro.Fincaneiro.DTO.MovimentacaoTipoPagamentoDTO;
+import Sistema.Financeiro.Fincaneiro.DTO.TopClientesDTO;
+import Sistema.Financeiro.Fincaneiro.DTO.TopFornecedoresDTO;
 import Sistema.Financeiro.Fincaneiro.Entidade.Movimentacao;
 import Sistema.Financeiro.Fincaneiro.Enum.TipoMovimentacao;
 
@@ -68,6 +74,96 @@ public interface MovimentacaoRepositorio extends JpaRepository<Movimentacao, Lon
                         @Param("ativa") boolean ativa);
 
         List<Movimentacao> findByUsuarioIdAndAtivaAndTipoAndPago(long id, boolean b, TipoMovimentacao despesa,
-                boolean c);
+                        boolean c);
+
+        List<Movimentacao> LancamentoRecorrente(boolean b);
+
+        List<Movimentacao> findByLancamentoRecorrenteTrueAndAtivaTrue();
+
+        @Query("""
+                            SELECT new Sistema.Financeiro.Fincaneiro.DTO.TopClientesDTO(
+                                m.cliente.id,
+                                m.cliente.nome,
+                                COUNT(m)
+                            )
+                            FROM Movimentacao m
+                            WHERE m.usuario.id = :usuarioId
+                            AND m.tipo = 'RECEITA'
+                            AND m.cliente IS NOT NULL
+                            GROUP BY m.cliente.id, m.cliente.nome
+                            ORDER BY COUNT(m) DESC
+                        """)
+        List<TopClientesDTO> findTopClientesPorMovimentacoes(@Param("usuarioId") long usuarioId);
+
+        @Query("""
+                            SELECT new Sistema.Financeiro.Fincaneiro.DTO.TopFornecedoresDTO(
+                                m.fornecedor.id,
+                                m.fornecedor.razaoSocial,
+                                COUNT(m)
+                            )
+                            FROM Movimentacao m
+                            WHERE m.usuario.id = :usuarioId
+                            AND m.tipo = 'DESPESA'
+                            AND m.fornecedor IS NOT NULL
+                            GROUP BY m.fornecedor.id, m.fornecedor.razaoSocial
+                            ORDER BY COUNT(m) DESC
+                        """)
+        List<TopFornecedoresDTO> findTopFornecedoresPorDespesas(@Param("usuarioId") long usuarioId);
+
+        @Query("""
+                            SELECT SUM(m.valor)
+                            FROM Movimentacao m
+                            WHERE m.tipo = :tipo
+                            AND m.usuario.id = :usuarioId
+                        """)
+        Double calcularSomaPorTipo(@Param("tipo") TipoMovimentacao tipo, @Param("usuarioId") long usuarioId);
+
+        @Query("""
+                            SELECT new Sistema.Financeiro.Fincaneiro.DTO.MovimentacaoCategoriaDTO(
+                                m.categoria_id.nome,
+                                SUM(m.valor),
+                                m.tipo
+                            )
+                            FROM Movimentacao m
+                            WHERE m.usuario.id = :id
+                            GROUP BY m.categoria_id.nome, m.tipo
+                            ORDER BY SUM(m.valor) DESC
+                        """)
+        List<MovimentacaoCategoriaDTO> findTotaisPorCategoria(@Param("id") long id);
+
+        @Query("""
+                            SELECT new Sistema.Financeiro.Fincaneiro.DTO.MovimentacaoMensalDTO(
+                                MONTH(m.data),
+                                SUM(m.valor),
+                                m.tipo
+                            )
+                            FROM Movimentacao m
+                            WHERE m.usuario.id = :id
+                            GROUP BY MONTH(m.data), m.tipo
+                            ORDER BY MONTH(m.data)
+                        """)
+        List<MovimentacaoMensalDTO> findTotaisPorMes(@Param("id") long id);
+
+        @Query("""
+                            SELECT m
+                            FROM Movimentacao m
+                            WHERE m.usuario.id = :id
+                            AND m.lancamentoRecorrente = true
+                            ORDER BY m.data DESC
+                        """)
+        Collection<Movimentacao> findRecorrentesPorUsuario(@Param("id") long id);
+
+        @Query("""
+                            SELECT new Sistema.Financeiro.Fincaneiro.DTO.MovimentacaoTipoPagamentoDTO(
+                                m.tipoPagamento,
+                                SUM(m.valor),
+                                m.tipo
+                            )
+                            FROM Movimentacao m
+                            WHERE m.usuario.id = :id
+                            GROUP BY m.tipoPagamento, m.tipo
+                            ORDER BY SUM(m.valor) DESC
+                        """)
+        List<MovimentacaoTipoPagamentoDTO> findTotaisPorTipoPagamento(@Param("id") long id);
 
 }

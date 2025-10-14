@@ -54,4 +54,6 @@ public class Fornecedor {
     @NotNull
     private TipoClienteFornecedor tipo;
     private boolean ativo = true;
+    @NotNull
+    private Usuario usuario;
 }

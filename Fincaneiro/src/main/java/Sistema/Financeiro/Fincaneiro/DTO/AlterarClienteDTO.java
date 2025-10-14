@@ -1,6 +1,7 @@
 package Sistema.Financeiro.Fincaneiro.DTO;
 
 import Sistema.Financeiro.Fincaneiro.Entidade.Endereco;
+import Sistema.Financeiro.Fincaneiro.Entidade.Usuario;
 import Sistema.Financeiro.Fincaneiro.Enum.TipoClienteFornecedor;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -32,4 +33,6 @@ public class AlterarClienteDTO {
     private Endereco endereco;
 
     private TipoClienteFornecedor tipo;
+
+    private Usuario usuario;
 }

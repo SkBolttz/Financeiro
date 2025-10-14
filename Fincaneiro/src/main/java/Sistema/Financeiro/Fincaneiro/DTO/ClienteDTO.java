@@ -1,6 +1,7 @@
 package Sistema.Financeiro.Fincaneiro.DTO;
 
 import Sistema.Financeiro.Fincaneiro.Entidade.Endereco;
+import Sistema.Financeiro.Fincaneiro.Entidade.Usuario;
 import Sistema.Financeiro.Fincaneiro.Enum.TipoClienteFornecedor;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -37,4 +38,7 @@ public class ClienteDTO {
 
     @NotNull
     private TipoClienteFornecedor tipo;
+
+    @NotNull
+    private Usuario usuario;
 }

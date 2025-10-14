@@ -2,6 +2,7 @@ package Sistema.Financeiro.Fincaneiro.DTO;
 
 import Sistema.Financeiro.Fincaneiro.Enum.TipoClienteFornecedor;
 import Sistema.Financeiro.Fincaneiro.Entidade.Endereco;
+import Sistema.Financeiro.Fincaneiro.Entidade.Usuario;
 import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,4 +26,5 @@ public class AlterarFornecedorDTO {
     private String pessoaContato;
     private String observacao;
     private TipoClienteFornecedor tipo;
+    private Usuario usuario;
 }

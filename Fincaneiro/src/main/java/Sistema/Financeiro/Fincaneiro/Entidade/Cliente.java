@@ -1,21 +1,13 @@
 package Sistema.Financeiro.Fincaneiro.Entidade;
 
+import java.time.LocalDate;
+
 import Sistema.Financeiro.Fincaneiro.Enum.TipoClienteFornecedor;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Getter
 @Setter
@@ -30,19 +22,33 @@ public class Cliente {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @NotBlank
     private String nome;
+
     private String cpf;
     private String cnpj;
+
     @NotBlank
     private String telefone;
+
     @NotBlank
     @Email
     private String email;
+
     @NotNull
     @ManyToOne
     private Endereco endereco;
+
     @NotNull
+    @Enumerated(EnumType.STRING)
     private TipoClienteFornecedor tipo;
+
     private boolean ativo = true;
+
+    @ManyToOne
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
+
+    private LocalDate dataCadastro;
 }

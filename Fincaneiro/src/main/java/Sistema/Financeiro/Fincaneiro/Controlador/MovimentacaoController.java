@@ -4,6 +4,7 @@ import java.security.Principal;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -13,13 +14,10 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import Sistema.Financeiro.Fincaneiro.DTO.AlterarMovimentacaoDTO;
+import Sistema.Financeiro.Fincaneiro.DTO.ListarMovimentacaoDTO;
 import Sistema.Financeiro.Fincaneiro.DTO.MovimentacaoDTO;
 import Sistema.Financeiro.Fincaneiro.DTO.RemoverMovimentacaoDTO;
 import Sistema.Financeiro.Fincaneiro.Entidade.Movimentacao;
-import Sistema.Financeiro.Fincaneiro.Exception.Handler.Categoria.CategoriaIncorretaException;
-import Sistema.Financeiro.Fincaneiro.Exception.Handler.Categoria.CategoriaNaoLocalizadaException;
-import Sistema.Financeiro.Fincaneiro.Exception.Handler.Movimentacao.TipoIncorretoException;
-import Sistema.Financeiro.Fincaneiro.Exception.Handler.Usuario.UsuarioNaoLocalizadoException;
 import Sistema.Financeiro.Fincaneiro.Servicos.MovimentacaoServico;
 import Sistema.Financeiro.Fincaneiro.Servicos.UsuarioServico;
 
@@ -37,41 +35,32 @@ public class MovimentacaoController {
     }
 
     @Operation(summary = "Adicionar receita", description = "Adiciona uma nova receita ao usuário.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Receita adicionada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Receita adicionada com sucesso: Descrição - Valor - Data - Tipo\""))),
-            @ApiResponse(responseCode = "400", description = "Erro ao adicionar receita", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Erro ao adicionar receita: Usuário não localizado / Tipo incorreto / Categoria inválida\"")))
-    })
-    @PostMapping("/adicionar/receita")
-    public ResponseEntity<String> adicionarReceita(@RequestBody @Valid MovimentacaoDTO movimentacaoDTO) {
+    @PostMapping(value = "/adicionar/receita", consumes = { "multipart/form-data" })
+    public ResponseEntity<String> adicionarReceita(
+            @RequestPart("movimentacao") @Valid MovimentacaoDTO movimentacaoDTO,
+            @RequestPart(value = "comprovanteEntrada", required = false) MultipartFile comprovanteEntrada,
+            @RequestPart(value = "comprovanteRestante", required = false) MultipartFile comprovanteRestante) {
         try {
-            movimentacaoServico.adicionarReceita(movimentacaoDTO);
+            movimentacaoServico.adicionarReceita(movimentacaoDTO, comprovanteEntrada, comprovanteRestante);
             return ResponseEntity.status(201)
-                    .body("Receita adicionada com sucesso:V2 " + movimentacaoDTO.descricao() + " - "
+                    .body("Receita adicionada com sucesso: " + movimentacaoDTO.descricao() + " - "
                             + movimentacaoDTO.valor() + " - " + movimentacaoDTO.data() + " - "
                             + movimentacaoDTO.tipo());
-        } catch (UsuarioNaoLocalizadoException e) {
-            return ResponseEntity.status(400).body("Usuário não localizado, favor criar um.");
-        } catch (TipoIncorretoException e) {
-            return ResponseEntity.status(400).body("Tipo de movimentação inválido, esperado RECEITA.");
-        } catch (CategoriaNaoLocalizadaException e) {
-            return ResponseEntity.status(400)
-                    .body("Erro ao localizar a categoria, por favor, verifique se está cadastrada");
-        } catch (CategoriaIncorretaException e) {
-            return ResponseEntity.status(400).body("Categoria não é uma categoria de receita.");
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body("Erro ao adicionar receita: " + e.getMessage());
         }
     }
 
     @Operation(summary = "Adicionar despesa", description = "Adiciona uma nova despesa ao usuário.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Despesa adicionada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Despesa adicionada com sucesso: Descrição - Valor - Data - Tipo\""))),
-            @ApiResponse(responseCode = "400", description = "Erro ao adicionar despesa", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Erro ao adicionar despesa: Mensagem de erro\"")))
-    })
-    @PostMapping("/adicionar/despesa")
-    public ResponseEntity<String> adicionarDespesa(@RequestBody @Valid MovimentacaoDTO movimentacaoDTO) {
+    @PostMapping(value = "/adicionar/despesa", consumes = { "multipart/form-data" })
+    public ResponseEntity<String> adicionarDespesa(
+            @RequestPart("movimentacao") @Valid MovimentacaoDTO movimentacaoDTO,
+            @RequestPart(value = "comprovanteEntrada", required = false) MultipartFile comprovanteEntrada,
+            @RequestPart(value = "comprovanteRestante", required = false) MultipartFile comprovanteRestante) {
         try {
-            movimentacaoServico.adicionarDespesa(movimentacaoDTO);
+            movimentacaoServico.adicionarDespesa(movimentacaoDTO, comprovanteEntrada, comprovanteRestante);
             return ResponseEntity.status(201)
-                    .body("Despesa adicionada com sucesso:V2 " + movimentacaoDTO.descricao() + " - "
+                    .body("Despesa adicionada com sucesso: " + movimentacaoDTO.descricao() + " - "
                             + movimentacaoDTO.valor() + " - " + movimentacaoDTO.data() + " - "
                             + movimentacaoDTO.tipo());
         } catch (Exception e) {
@@ -109,15 +98,13 @@ public class MovimentacaoController {
         }
     }
 
-    @Operation(summary = "Editar receita", description = "Edita uma receita existente.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Receita editada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Receita editada com sucesso: Descrição - Valor - Data - Tipo\""))),
-            @ApiResponse(responseCode = "400", description = "Erro ao editar receita", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Erro ao editar receita: Mensagem de erro\"")))
-    })
-    @PutMapping("/editar/receita")
-    public ResponseEntity<String> editarReceita(@RequestBody @Valid AlterarMovimentacaoDTO movimentacaoDTO) {
+    @PutMapping(value = "/editar/receita", consumes = { "multipart/form-data" })
+    public ResponseEntity<String> editarReceita(
+            @RequestPart("movimentacao") @Valid AlterarMovimentacaoDTO movimentacaoDTO,
+            @RequestPart(value = "comprovanteEntrada", required = false) MultipartFile comprovanteEntrada,
+            @RequestPart(value = "comprovanteRestante", required = false) MultipartFile comprovanteRestante) {
         try {
-            movimentacaoServico.editarReceita(movimentacaoDTO);
+            movimentacaoServico.editarReceita(movimentacaoDTO, comprovanteEntrada, comprovanteRestante);
             return ResponseEntity.status(201)
                     .body("Receita editada com sucesso: " + movimentacaoDTO.descricao() + " - "
                             + movimentacaoDTO.valor() + " - " + movimentacaoDTO.data() + " - "
@@ -127,15 +114,13 @@ public class MovimentacaoController {
         }
     }
 
-    @Operation(summary = "Editar despesa", description = "Edita uma despesa existente.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Despesa editada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Despesa editada com sucesso: Descrição - Valor - Data - Tipo\""))),
-            @ApiResponse(responseCode = "400", description = "Erro ao editar despesa", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class), examples = @ExampleObject(value = "\"Erro ao editar despesa: Mensagem de erro\"")))
-    })
-    @PutMapping("/editar/despesa")
-    public ResponseEntity<String> editarDespesa(@RequestBody @Valid AlterarMovimentacaoDTO movimentacaoDTO) {
+    @PutMapping(value = "/editar/despesa", consumes = { "multipart/form-data" })
+    public ResponseEntity<String> editarDespesa(
+            @RequestPart("movimentacao") @Valid AlterarMovimentacaoDTO movimentacaoDTO,
+            @RequestPart(value = "comprovanteEntrada", required = false) MultipartFile comprovanteEntrada,
+            @RequestPart(value = "comprovanteRestante", required = false) MultipartFile comprovanteRestante) {
         try {
-            movimentacaoServico.editarDespesa(movimentacaoDTO);
+            movimentacaoServico.editarDespesa(movimentacaoDTO, comprovanteEntrada, comprovanteRestante);
             return ResponseEntity.status(201)
                     .body("Despesa editada com sucesso: " + movimentacaoDTO.descricao() + " - "
                             + movimentacaoDTO.valor() + " - " + movimentacaoDTO.data() + " - "
@@ -300,6 +285,45 @@ public class MovimentacaoController {
             @RequestBody @Valid AlterarMovimentacaoDTO movimentacaoDTO) {
         try {
             return ResponseEntity.status(200).body(movimentacaoServico.alterarMovimentacaoPaga(movimentacaoDTO));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @GetMapping("/listar/movimentacao/{idMovimentacao}")
+    public ResponseEntity<ListarMovimentacaoDTO> listarMovimentacao(@PathVariable Long idMovimentacao) {
+        try {
+            Movimentacao m = movimentacaoServico.listarMovimentacaoPorId(idMovimentacao);
+
+            ListarMovimentacaoDTO dto = new ListarMovimentacaoDTO();
+            dto.setId(m.getId());
+            dto.setUsuarioId(m.getUsuario().getId());
+            dto.setUsuarioNome(m.getUsuario().getNome());
+            dto.setCategoriaId(m.getCategoria_id().getId());
+            dto.setCategoriaNome(m.getCategoria_id().getNome());
+            dto.setTipo(m.getTipo());
+            dto.setValor(m.getValor());
+            dto.setData(m.getData());
+            dto.setDescricao(m.getDescricao());
+            dto.setPago(m.getPago());
+            dto.setAtrasado(m.isAtrasado());
+            dto.setAtiva(m.isAtiva());
+            dto.setDataDeDesativacao(m.getDataDeDesativacao());
+            dto.setDataDePagamento(m.getDataDePagamento());
+            dto.setTipoPagamento(m.getTipoPagamento());
+            dto.setLancamentoRecorrente(m.getLancamentoRecorrente());
+            dto.setDataLancamentoRecorrenteCriacao(m.getDataLancamentoRecorrenteCriacao());
+            dto.setDataLancamentoRecorrenteProxima(m.getDataLancamentoRecorrenteProxima());
+            dto.setPeriodicidade(m.getPeriodicidade());
+            dto.setDataFimRecorrencia(m.getDataFimRecorrencia());
+            dto.setTotalRecorrencias(m.getTotalRecorrencias());
+            dto.setRecorrenciasCriadas(m.getRecorrenciasCriadas());
+            dto.setComprovanteEntrada(m.getComprovanteEntrada());
+            dto.setComprovanteRestante(m.getComprovanteRestante());
+            dto.setClienteSelecionado(m.getCliente());
+            dto.setFornecedorSelecionado(m.getFornecedor());
+
+            return ResponseEntity.ok(dto);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }
