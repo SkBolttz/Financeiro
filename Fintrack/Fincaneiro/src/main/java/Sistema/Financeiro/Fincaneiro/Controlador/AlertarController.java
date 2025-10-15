@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import Sistema.Financeiro.Fincaneiro.DTO.AlertaDTO;
 import Sistema.Financeiro.Fincaneiro.Entidade.Movimentacao;
 import Sistema.Financeiro.Fincaneiro.Entidade.Usuario;
