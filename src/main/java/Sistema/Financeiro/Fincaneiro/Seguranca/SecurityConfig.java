@@ -1,7 +1,6 @@
 package Sistema.Financeiro.Fincaneiro.Seguranca;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,7 +36,6 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Libera preflight OPTIONS e endpoints de cadastro/login
                 .requestMatchers("/autenticacao/**").permitAll()
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/swagger-ui/**").permitAll()
                 .requestMatchers("/v3/api-docs/**").permitAll()
                 .requestMatchers("/swagger-resources/**").permitAll()
