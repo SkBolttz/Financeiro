@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 @RestController
 @RequestMapping("/autenticacao")
-@CorsOrigin("*")
+@CrossOrigin(origins = "*")
 @Tag(name = "Autenticação", description = "Endpoints para autenticação de usuários")
 public class AutenticacaoController {
 
