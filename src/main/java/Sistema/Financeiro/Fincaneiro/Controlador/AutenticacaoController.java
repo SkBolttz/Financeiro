@@ -30,6 +30,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/autenticacao")
+@CrossOrigin(origins = "*")
 @Tag(name = "Autenticação", description = "Endpoints para autenticação de usuários")
 public class AutenticacaoController {
 
