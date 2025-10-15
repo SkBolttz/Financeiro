@@ -14,11 +14,18 @@ public class CorsConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        
+
+        // Frontend autorizado
         config.setAllowedOrigins(Arrays.asList("https://fintrack-finance.vercel.app"));
-                config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                config.setAllowedHeaders(Arrays.asList("*"));
-                config.setAllowCredentials(true);
+        
+        // Permitir qualquer header
+        config.addAllowedHeader("*");
+        
+        // Permitir qualquer método
+        config.addAllowedMethod("*");
+        
+        // Se for usar credenciais (cookies/autenticação)
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
