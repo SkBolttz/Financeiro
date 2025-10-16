@@ -22,31 +22,33 @@ public class AlertarController {
     private final UsuarioRepositorio usuarioRepositorio;
     private final UsuarioServico usuarioServico;
 
-    public AlertarController(MovimentacaoServico movimentacaoServico, UsuarioRepositorio usuarioRepositorio, UsuarioServico usuarioServico) {
+    public AlertarController(MovimentacaoServico movimentacaoServico, UsuarioRepositorio usuarioRepositorio,
+            UsuarioServico usuarioServico) {
         this.movimentacaoServico = movimentacaoServico;
         this.usuarioRepositorio = usuarioRepositorio;
         this.usuarioServico = usuarioServico;
     }
 
-        private Usuario getUsuarioLogado(Principal principal) {
+    private Usuario getUsuarioLogado(Principal principal) {
         return usuarioServico.buscarPorEmail(principal.getName());
     }
 
     @GetMapping("/verificar/vencimento/amanha")
     public ResponseEntity<List<AlertaDTO>> verificarVencimentoAgora(Principal principal) {
-        List<Usuario> usuarios = usuarioRepositorio.findByNome(principal.getName());
-        List<AlertaDTO> alertas = new ArrayList<>();
+        Usuario usuario = (Usuario) usuarioRepositorio.findByEmail(principal.getName());
 
-        for (Usuario usuario : usuarios) {
-            List<Movimentacao> vencemAmanha = movimentacaoServico.verificarPertoVencimento(usuario.getId());
+        if (usuario == null) {
+            throw new RuntimeException("Usuário não encontrado");
+        }
 
-            vencemAmanha.forEach(m -> {
-                alertas.add(new AlertaDTO(
+        List<Movimentacao> vencemAmanha = movimentacaoServico.verificarPertoVencimento(usuario.getId());
+
+        List<AlertaDTO> alertas = vencemAmanha.stream()
+                .map(m -> new AlertaDTO(
                         usuario.getNome(),
                         m.getDescricao(),
-                        m.getData().toString()));
-            });
-        }
+                        m.getData().toString()))
+                .toList();
 
         return ResponseEntity.ok(alertas);
     }
