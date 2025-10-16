@@ -54,20 +54,25 @@ public class AlertarController {
     }
 
     @GetMapping("/alterar/vencimento/despesa")
-    public ResponseEntity<List<AlertaDTO>> alterarVencimentoDespesa() {
-        List<Usuario> usuarios = usuarioRepositorio.findAll();
-        List<AlertaDTO> alertas = new ArrayList<>();
+    public ResponseEntity<List<AlertaDTO>> alterarVencimentoDespesa(Principal principal) {
+        // Busca o usuário logado pelo email
+        Usuario usuario = (Usuario) usuarioRepositorio.findByEmail(principal.getName());
 
-        for (Usuario usuario : usuarios) {
-            List<Movimentacao> alterarVencimento = movimentacaoServico.alterarDespesaVencida(usuario.getId());
+        if (usuario == null) {
+            throw new RuntimeException("Usuário não encontrado");
+        }
 
-            alterarVencimento.forEach(m -> {
-                alertas.add(new AlertaDTO(
+        // Chama o serviço apenas para o usuário logado
+        List<Movimentacao> vencidas = movimentacaoServico.alterarDespesaVencida(usuario.getId());
+
+        // Converte para DTO
+        List<AlertaDTO> alertas = vencidas.stream()
+                .map(m -> new AlertaDTO(
                         usuario.getNome(),
                         m.getDescricao(),
-                        m.getData().toString()));
-            });
-        }
+                        m.getData().toString()))
+                .toList();
+
         return ResponseEntity.ok(alertas);
     }
 }
