@@ -470,24 +470,22 @@ public class MovimentacaoServico {
         return movimentacaoRepositorio.findByUsuarioIdAndAtiva(usuarioId, false, PageRequest.of(page, size));
     }
 
-    public List<Movimentacao> verificarPertoVencimento(long id) {
-
-        List<Movimentacao> movimentacaos = movimentacaoRepositorio.findByUsuarioIdAndAtivaAndTipoAndPago(id, true,
-                TipoMovimentacao.DESPESA, false);
-
+    public List<Movimentacao> verificarPertoVencimento(long usuarioId) {
         LocalDate amanha = LocalDate.now().plusDays(1);
 
-        return movimentacaos.stream()
+        List<Movimentacao> movimentacoes = movimentacaoRepositorio.buscarPorUsuarioAtivaTipoNaoPago(
+                usuarioId, TipoMovimentacao.DESPESA);
+
+        return movimentacoes.stream()
                 .filter(m -> m.getData().isEqual(amanha))
                 .collect(Collectors.toList());
     }
 
-    public List<Movimentacao> alterarDespesaVencida(long id) {
+    public List<Movimentacao> alterarDespesaVencida(long usuarioId) {
+        List<Movimentacao> movimentacoes = movimentacaoRepositorio.buscarPorUsuarioAtivaTipoNaoPago(
+                usuarioId, TipoMovimentacao.DESPESA);
 
-        List<Movimentacao> movimentacaos = movimentacaoRepositorio.findByUsuarioIdAndAtivaAndTipoAndPago(id, true,
-                TipoMovimentacao.DESPESA, false);
-
-        List<Movimentacao> vencidas = movimentacaos.stream()
+        List<Movimentacao> vencidas = movimentacoes.stream()
                 .filter(m -> m.getData().isBefore(LocalDate.now()))
                 .collect(Collectors.toList());
 
