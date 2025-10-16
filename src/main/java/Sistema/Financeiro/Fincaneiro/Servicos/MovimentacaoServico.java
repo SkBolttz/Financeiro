@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -13,7 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import Sistema.Financeiro.Fincaneiro.DTO.AlterarMovimentacaoDTO;
 import Sistema.Financeiro.Fincaneiro.DTO.MovimentacaoDTO;
 import Sistema.Financeiro.Fincaneiro.DTO.RemoverMovimentacaoDTO;
@@ -48,7 +48,8 @@ public class MovimentacaoServico {
     private final FornecedorRepositorio fornecedorRepositorio;
 
     public MovimentacaoServico(MovimentacaoRepositorio movimentacaoRepositorio, UsuarioRepositorio usuarioRepositorio,
-            CategoriaRepositorio categoriaRepositorio, ClienteRepositorio clienteRepositorio, FornecedorRepositorio fornecedorRepositorio) {
+            CategoriaRepositorio categoriaRepositorio, ClienteRepositorio clienteRepositorio,
+            FornecedorRepositorio fornecedorRepositorio) {
         this.movimentacaoRepositorio = movimentacaoRepositorio;
         this.usuarioRepositorio = usuarioRepositorio;
         this.categoriaRepositorio = categoriaRepositorio;
@@ -57,73 +58,72 @@ public class MovimentacaoServico {
     }
 
     // Funcionando
-  @Transactional
-  public void adicionarReceita(MovimentacaoDTO dto, MultipartFile comprovanteEntrada,
-          MultipartFile comprovanteRestante) {
-      Usuario usuario = usuarioRepositorio.findById(dto.usuario_id().getId())
-              .orElseThrow(() -> new UsuarioNaoLocalizadoException("Usuário não localizado.",
-                      "Usuário nao localizado, favor criar um."));
+    @Transactional
+    public void adicionarReceita(MovimentacaoDTO dto, MultipartFile comprovanteEntrada,
+            MultipartFile comprovanteRestante) {
+        Usuario usuario = usuarioRepositorio.findById(dto.usuario_id().getId())
+                .orElseThrow(() -> new UsuarioNaoLocalizadoException("Usuário não localizado.",
+                        "Usuário nao localizado, favor criar um."));
 
-      if (dto.tipo() != TipoMovimentacao.RECEITA)
-          throw new TipoIncorretoException("Tipo de movimentação inválido, esperado RECEITA.",
-                  "Tipo de movimentação inválido, esperado RECEITA.");
+        if (dto.tipo() != TipoMovimentacao.RECEITA)
+            throw new TipoIncorretoException("Tipo de movimentação inválido, esperado RECEITA.",
+                    "Tipo de movimentação inválido, esperado RECEITA.");
 
-      Categoria categoria = categoriaRepositorio.findById(dto.categoria_id().getId())
-              .orElseThrow(() -> new CategoriaNaoLocalizadaException("Categoria não localizada.",
-                      "Categoria nao localizada, favor criar uma."));
+        Categoria categoria = categoriaRepositorio.findById(dto.categoria_id().getId())
+                .orElseThrow(() -> new CategoriaNaoLocalizadaException("Categoria não localizada.",
+                        "Categoria nao localizada, favor criar uma."));
 
-      if (categoria.getTipo() != TipoMovimentacao.RECEITA)
-          throw new CategoriaIncorretaException("Categoria não é de receita.", "Categoria nao é de receita.");
+        if (categoria.getTipo() != TipoMovimentacao.RECEITA)
+            throw new CategoriaIncorretaException("Categoria não é de receita.", "Categoria nao é de receita.");
 
-      usuario.setSaldo(usuario.getSaldo() + dto.valor());
-      usuarioRepositorio.save(usuario);
+        usuario.setSaldo(usuario.getSaldo() + dto.valor());
+        usuarioRepositorio.save(usuario);
 
-      Cliente clienteSelecionado = null;
-      if (dto.cliente() != null && dto.cliente().getId() != null) {
-          clienteSelecionado = clienteRepositorio.findById(dto.cliente().getId())
-                  .orElse(null);  
-      }
+        Cliente clienteSelecionado = null;
+        if (dto.cliente() != null && dto.cliente().getId() != null) {
+            clienteSelecionado = clienteRepositorio.findById(dto.cliente().getId())
+                    .orElse(null);
+        }
 
-      Fornecedor fornecedorSelecionado = null;
-      if (dto.fornecedor() != null && dto.fornecedor().getId() != 0L) {
-          fornecedorSelecionado = fornecedorRepositorio.findById(dto.fornecedor().getId())
-                  .orElse(null);
-      }
+        Fornecedor fornecedorSelecionado = null;
+        if (dto.fornecedor() != null && dto.fornecedor().getId() != 0L) {
+            fornecedorSelecionado = fornecedorRepositorio.findById(dto.fornecedor().getId())
+                    .orElse(null);
+        }
 
-      Movimentacao movimentacao = new Movimentacao(
-              dto.descricao(),
-              dto.valor(),
-              dto.data(),
-              dto.tipo(),
-              usuario,
-              categoria,
-              true, 
-              dto.periodicidade(),
-              dto.dataFimRecorrencia(),
-              dto.totalRecorrencias(),
-              dto.tipoPagamento(),
-              clienteSelecionado,
-              fornecedorSelecionado);
+        Movimentacao movimentacao = new Movimentacao(
+                dto.descricao(),
+                dto.valor(),
+                dto.data(),
+                dto.tipo(),
+                usuario,
+                categoria,
+                true,
+                dto.periodicidade(),
+                dto.dataFimRecorrencia(),
+                dto.totalRecorrencias(),
+                dto.tipoPagamento(),
+                clienteSelecionado,
+                fornecedorSelecionado);
 
-      movimentacao.setPago(false);
+        movimentacao.setPago(false);
 
-      if (dto.lancamentoRecorrente() != null && dto.lancamentoRecorrente()) {
-          movimentacao.setDataLancamentoRecorrenteCriacao(LocalDate.now());
-          movimentacao.setDataLancamentoRecorrenteProxima(LocalDate.now().plusMonths(1));
-      }
+        if (dto.lancamentoRecorrente() != null && dto.lancamentoRecorrente()) {
+            movimentacao.setDataLancamentoRecorrenteCriacao(LocalDate.now());
+            movimentacao.setDataLancamentoRecorrenteProxima(LocalDate.now().plusMonths(1));
+        }
 
-      if (comprovanteEntrada != null && !comprovanteEntrada.isEmpty()) {
-          String caminhoEntrada = salvarArquivo(comprovanteEntrada);
-          movimentacao.setComprovanteEntrada(caminhoEntrada);
-      }
-      if (comprovanteRestante != null && !comprovanteRestante.isEmpty()) {
-          String caminhoRestante = salvarArquivo(comprovanteRestante);
-          movimentacao.setComprovanteRestante(caminhoRestante);
-      }
+        if (comprovanteEntrada != null && !comprovanteEntrada.isEmpty()) {
+            String caminhoEntrada = salvarArquivo(comprovanteEntrada);
+            movimentacao.setComprovanteEntrada(caminhoEntrada);
+        }
+        if (comprovanteRestante != null && !comprovanteRestante.isEmpty()) {
+            String caminhoRestante = salvarArquivo(comprovanteRestante);
+            movimentacao.setComprovanteRestante(caminhoRestante);
+        }
 
-      movimentacaoRepositorio.save(movimentacao);
-  }
-  
+        movimentacaoRepositorio.save(movimentacao);
+    }
 
     // Funcionando
     public void removerReceita(RemoverMovimentacaoDTO movimentacaoDTO) {
@@ -171,19 +171,17 @@ public class MovimentacaoServico {
         usuario.setSaldo(usuario.getSaldo() - dto.valor());
         usuarioRepositorio.save(usuario);
 
+        Cliente clienteSelecionado = null;
+        if (dto.cliente() != null && dto.cliente().getId() != null) {
+            clienteSelecionado = clienteRepositorio.findById(dto.cliente().getId())
+                    .orElse(null);
+        }
 
-        
-      Cliente clienteSelecionado = null;
-      if (dto.cliente() != null && dto.cliente().getId() != null) {
-          clienteSelecionado = clienteRepositorio.findById(dto.cliente().getId())
-                  .orElse(null);  
-      }
-
-      Fornecedor fornecedorSelecionado = null;
-      if (dto.fornecedor() != null && dto.fornecedor().getId() != 0L) {
-          fornecedorSelecionado = fornecedorRepositorio.findById(dto.fornecedor().getId())
-                  .orElse(null);
-      }
+        Fornecedor fornecedorSelecionado = null;
+        if (dto.fornecedor() != null && dto.fornecedor().getId() != 0L) {
+            fornecedorSelecionado = fornecedorRepositorio.findById(dto.fornecedor().getId())
+                    .orElse(null);
+        }
 
         Movimentacao movimentacao = new Movimentacao(
                 dto.descricao(),
@@ -200,16 +198,16 @@ public class MovimentacaoServico {
                 clienteSelecionado,
                 fornecedorSelecionado);
 
-      movimentacao.setPago(false);
+        movimentacao.setPago(false);
 
-      if (comprovanteEntrada != null && !comprovanteEntrada.isEmpty()) {
-          String caminhoEntrada = salvarArquivo(comprovanteEntrada);
-          movimentacao.setComprovanteEntrada(caminhoEntrada);
-      }
-      if (comprovanteRestante != null && !comprovanteRestante.isEmpty()) {
-          String caminhoRestante = salvarArquivo(comprovanteRestante);
-          movimentacao.setComprovanteRestante(caminhoRestante);
-      }
+        if (comprovanteEntrada != null && !comprovanteEntrada.isEmpty()) {
+            String caminhoEntrada = salvarArquivo(comprovanteEntrada);
+            movimentacao.setComprovanteEntrada(caminhoEntrada);
+        }
+        if (comprovanteRestante != null && !comprovanteRestante.isEmpty()) {
+            String caminhoRestante = salvarArquivo(comprovanteRestante);
+            movimentacao.setComprovanteRestante(caminhoRestante);
+        }
 
         movimentacaoRepositorio.save(movimentacao);
     }
@@ -262,16 +260,16 @@ public class MovimentacaoServico {
                 movimentacaoLocalizada.setData(movimentacaoDTO.data());
             }
             if (movimentacaoDTO.valor() != null) {
-                        if (movimentacaoDTO.valor() != null) {
-                            double valorAntigo = movimentacaoLocalizada.getValor();
-                            double valorNovo = movimentacaoDTO.valor();
-                            double diferenca = valorNovo - valorAntigo;
-            
-                            movimentacaoLocalizada.setValor(valorNovo);
-                            Usuario usuarioLocalizado = movimentacaoLocalizada.getUsuario();
-                            usuarioLocalizado.setSaldo(usuarioLocalizado.getSaldo() + diferenca);
-                            usuarioRepositorio.save(usuarioLocalizado);
-                        }
+                if (movimentacaoDTO.valor() != null) {
+                    double valorAntigo = movimentacaoLocalizada.getValor();
+                    double valorNovo = movimentacaoDTO.valor();
+                    double diferenca = valorNovo - valorAntigo;
+
+                    movimentacaoLocalizada.setValor(valorNovo);
+                    Usuario usuarioLocalizado = movimentacaoLocalizada.getUsuario();
+                    usuarioLocalizado.setSaldo(usuarioLocalizado.getSaldo() + diferenca);
+                    usuarioRepositorio.save(usuarioLocalizado);
+                }
             }
             if (movimentacaoDTO.tipo() != null) {
                 movimentacaoLocalizada.setTipo(movimentacaoDTO.tipo());
@@ -292,11 +290,11 @@ public class MovimentacaoServico {
                 movimentacaoLocalizada.setTotalRecorrencias(movimentacaoDTO.totalRecorrencias());
             }
 
-            if(movimentacaoDTO.cliente() != null) {
+            if (movimentacaoDTO.cliente() != null) {
                 movimentacaoLocalizada.setCliente(movimentacaoDTO.cliente());
             }
 
-            if(movimentacaoDTO.fornecedor() != null) {
+            if (movimentacaoDTO.fornecedor() != null) {
                 movimentacaoLocalizada.setFornecedor(movimentacaoDTO.fornecedor());
             }
 
@@ -319,7 +317,7 @@ public class MovimentacaoServico {
                 movimentacaoLocalizada.setComprovanteRestante(caminhoRestante);
             }
 
-            if(movimentacaoDTO.pago() != movimentacaoLocalizada.getPago()) {
+            if (movimentacaoDTO.pago() != movimentacaoLocalizada.getPago()) {
                 movimentacaoLocalizada.setPago(movimentacaoDTO.pago());
             }
 
@@ -356,16 +354,16 @@ public class MovimentacaoServico {
                 movimentacaoLocalizada.setData(movimentacaoDTO.data());
             }
             if (movimentacaoDTO.valor() != null) {
-                        if (movimentacaoDTO.valor() != null) {
-                            double valorAntigo = movimentacaoLocalizada.getValor();
-                            double valorNovo = movimentacaoDTO.valor();
-                            double diferenca = valorNovo - valorAntigo;
-            
-                            movimentacaoLocalizada.setValor(valorNovo);
-                            Usuario usuarioLocalizado = movimentacaoLocalizada.getUsuario();
-                            usuarioLocalizado.setSaldo(usuarioLocalizado.getSaldo() + diferenca);
-                            usuarioRepositorio.save(usuarioLocalizado);
-                        }
+                if (movimentacaoDTO.valor() != null) {
+                    double valorAntigo = movimentacaoLocalizada.getValor();
+                    double valorNovo = movimentacaoDTO.valor();
+                    double diferenca = valorNovo - valorAntigo;
+
+                    movimentacaoLocalizada.setValor(valorNovo);
+                    Usuario usuarioLocalizado = movimentacaoLocalizada.getUsuario();
+                    usuarioLocalizado.setSaldo(usuarioLocalizado.getSaldo() + diferenca);
+                    usuarioRepositorio.save(usuarioLocalizado);
+                }
             }
             if (movimentacaoDTO.tipo() != null) {
                 movimentacaoLocalizada.setTipo(movimentacaoDTO.tipo());
@@ -403,6 +401,12 @@ public class MovimentacaoServico {
             if (comprovanteRestante != null && !comprovanteRestante.isEmpty()) {
                 String caminhoRestante = salvarArquivo(comprovanteRestante);
                 movimentacaoLocalizada.setComprovanteRestante(caminhoRestante);
+            }
+
+            if (movimentacaoDTO.pago() != movimentacaoLocalizada.getPago()) {
+                movimentacaoLocalizada.setPago(movimentacaoDTO.pago());
+                movimentacaoLocalizada.setDataDePagamento(LocalDateTime.now());
+                movimentacaoLocalizada.setAtrasado(false);
             }
 
             movimentacaoRepositorio.save(movimentacaoLocalizada);
@@ -536,7 +540,7 @@ public class MovimentacaoServico {
             Path path = Paths.get(diretorio + nomeArquivo);
             Files.write(path, file.getBytes());
 
-System.out.println("Salvando em: " + path.toAbsolutePath());
+            System.out.println("Salvando em: " + path.toAbsolutePath());
             return path.toString();
 
         } catch (IOException e) {
