@@ -20,6 +20,7 @@ import Sistema.Financeiro.Fincaneiro.DTO.TopFornecedoresDTO;
 import Sistema.Financeiro.Fincaneiro.DTO.TotalReceitaDespesaDTO;
 import Sistema.Financeiro.Fincaneiro.Entidade.Movimentacao;
 import Sistema.Financeiro.Fincaneiro.Entidade.Usuario;
+import Sistema.Financeiro.Fincaneiro.Repositorio.UsuarioRepositorio;
 import Sistema.Financeiro.Fincaneiro.Servicos.DashboardSevico;
 import Sistema.Financeiro.Fincaneiro.Servicos.UsuarioServico;
 
@@ -29,10 +30,12 @@ public class DashboardController {
 
     private final DashboardSevico dashboardSevico;
     private final UsuarioServico usuarioServico;
+    private final UsuarioRepositorio usuarioRepositorio;
 
-    public DashboardController(DashboardSevico dashboardSevico, UsuarioServico usuarioServico) {
+    public DashboardController(DashboardSevico dashboardSevico, UsuarioServico usuarioServico, UsuarioRepositorio usuarioRepositorio) {
         this.dashboardSevico = dashboardSevico;
         this.usuarioServico = usuarioServico;
+        this.usuarioRepositorio = usuarioRepositorio;
     }
 
     private Usuario getUsuarioLogado(Principal principal) {
@@ -74,7 +77,8 @@ public class DashboardController {
             return ResponseEntity.badRequest().body(null);
         }
     }
-        // Clientes PF x PJ
+
+    // Clientes PF x PJ
     @GetMapping("/clientes/tipo")
     public ResponseEntity<ClientesTipoDTO> clientesPorTipo(Principal principal) {
         return ResponseEntity.ok(dashboardSevico.clientesPorTipo(getUsuarioLogado(principal)));
@@ -124,8 +128,15 @@ public class DashboardController {
 
     // Receitas e despesas recorrentes
     @GetMapping("/movimentacoes/recorrentes")
-    public ResponseEntity<List<MovimentacaoRecorrenteDTO>> receitasDespesasRecorrentes(Principal principal) {
-        return ResponseEntity.ok(dashboardSevico.receitasDespesasRecorrentes(getUsuarioLogado(principal)));
+    public ResponseEntity<List<MovimentacaoRecorrenteDTO>> getRecorrentes(Principal principal) {
+        Usuario usuario = (Usuario) usuarioRepositorio.findByEmail(principal.getName());
+            
+        if(usuario == null) {
+            return ResponseEntity.badRequest().body(null);
+        };
+
+        List<MovimentacaoRecorrenteDTO> recorrentes = dashboardSevico.receitasDespesasRecorrentes(usuario);
+        return ResponseEntity.ok(recorrentes);
     }
 
     // Receitas x despesas por tipo de pagamento
