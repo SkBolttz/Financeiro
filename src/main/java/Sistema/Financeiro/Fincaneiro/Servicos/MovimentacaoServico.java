@@ -405,7 +405,7 @@ public class MovimentacaoServico {
 
             if (movimentacaoDTO.pago() != movimentacaoLocalizada.getPago()) {
                 movimentacaoLocalizada.setPago(movimentacaoDTO.pago());
-                movimentacaoLocalizada.setDataDePagamento(LocalDateTime.now());
+                movimentacaoLocalizada.setDataDePagamento(LocalDate.now());
                 movimentacaoLocalizada.setAtrasado(false);
             }
 
